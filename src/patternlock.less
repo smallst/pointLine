@@ -1,0 +1,51 @@
+.PLcontainer {
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  min-height: 1%;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  .PatternLock {
+    width: 100%;
+    height: 100%;
+    padding-top: 100px; 
+    .showPattern {
+      width: 110px;
+      height: 110px;
+      margin: 0 auto;
+    }
+    .tips {
+      width: 100%;
+      .inputTips {
+        margin-top: 50px;
+        margin-bottom: 40px;
+        font-size: 36px;
+        text-align: center;
+        .guide {
+          height: 28px;
+          line-height: 28px;
+          margin-top: 26px;
+          .guideTips {
+            font-size: 26px;
+            color: #e91919;
+            
+            &.hide {
+              display: none;
+            }
+          }
+        }
+        
+      }
+    }
+    .drawPattern {
+      width: 100%;
+      height: 958px;
+    }
+  }
+}
