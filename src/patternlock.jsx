@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { observer, inject } from 'mobx-react'
 import { withRouter } from 'react-router'
 // import MainPage from '../EmptyContainer/EmptyContainer'
-import "./patternlock.less";
+import "./patternlock.scss";
 import { SwipeAction, List } from 'antd-mobile';
 // import Navbar from '../Components/Navbar/Navbar'
 
@@ -19,7 +19,7 @@ let confirmPwd = []; // Confirm the password
 let unlockFlag = false; // Whether to unlock the logo 
 let isMouseDown = false;
 let arr = [];  // A coordinate array of nine points 
-let canvas, ctx, width, height;
+let canvas, ctx, width, height, isIdle, oldx, oldy;
 let canvasShow, ctxshow, widthShow, heightShow;
 
 // import deviceStore from "../../store/deviceStore";
@@ -40,6 +40,7 @@ class PatternLock extends Component {
     }
 
     componentDidMount() {
+        isIdle = true
         canvas = document.getElementById('canvas'); //  Draw a gesture canvas 
         ctx = canvas.getContext('2d'); //  Get the context object of the canvas 
         canvas.width = this.refs["drawPattern"].clientWidth;
@@ -85,6 +86,7 @@ class PatternLock extends Component {
                 arr.push(lockCicle);
             }
         }
+        arr.push({x: 100, y: 100, state: 0, stateShow: 0, showX: 0, showY: 0})
 
         // Initialization interface 
         function init() {
@@ -105,7 +107,7 @@ class PatternLock extends Component {
         function drawPointer(i) {
             ctx.save();
             ctxshow.save();
-            let radius = width / 12;
+            let radius = 10 ;//width / 12;
             let _fillStyle = "#ccc";
             let _strokeStyle = "#ccc";
             let _strokeStyleShow = "#ccc";
@@ -155,7 +157,7 @@ class PatternLock extends Component {
         }
     }
     drawPointer = (i, flag) => {
-        let radius = width / 12;
+        let radius = 10; ///width / 12;
         let _fillStyle = "#ccc";
         let _strokeStyle = "#ccc";
         let _strokeStyleShow = "#ccc";
@@ -195,6 +197,7 @@ class PatternLock extends Component {
     //  How to draw the connecting line , Draw the points in the coordinate array on canvas On canvas 
     // *****
     drawLinePointer = (x, y, flag) => {
+        console.log(x, y, flag)
         //  Draw a point-to-point line 
         ctx.clearRect(0, 0, width, height);   //  Empty the canvas 
         ctx.save();     //  Save the state of the current environment 
@@ -217,6 +220,7 @@ class PatternLock extends Component {
         for (var i = 0; i < arr.length; i++) {
             this.drawPointer(i,true); // Draw circles and origin 
             //isPointInPath Judgment point (x, y) Is it in the path , With the return true, Otherwise return to false; At the same time, judge whether the point has passed through 
+            console.log(ctx.path, ctx.isPointInPath(x, y), currentPointer, puts)
             if (ctx.isPointInPath(x, y) && currentPointer != i && puts.indexOf(i + 1) < 0) {
                 pointerArr.push({
                     x: arr[i].x,
@@ -251,21 +255,38 @@ class PatternLock extends Component {
     }
     canvasTouchStart = (e) => {
         isMouseDown = true;
-        // let x1 = e.targetTouches[0].pageX;
-        // let y1 = e.targetTouches[0].pageY - canvas.offsetTop;
-        let x1 = e.pageX - canvas.offsetLeft;
-        let y1 = e.pageY - canvas.offsetTop;
+        let x1 = e.targetTouches[0].pageX;
+        let y1 = e.targetTouches[0].pageY - canvas.offsetTop;
         this.drawLinePointer(x1, y1, false);
     }
     canvasTouchMove = (e) => {
         if (isMouseDown) {
-            // let x1 = e.targetTouches[0].pageX;
-            // let y1 = e.targetTouches[0].pageY - canvas.offsetTop;
-        let x1 = e.pageX - canvas.offsetLeft;
-        let y1 = e.pageY - canvas.offsetTop;
+            let x1 = e.targetTouches[0].pageX;
+            let y1 = e.targetTouches[0].pageY - canvas.offsetTop;
             this.drawLinePointer(x1, y1, true);
         }
     }
+    drawstart = (event)=> {
+        console.log(event, canvas)
+        if(!isMouseDown) {
+        let x1 = event.pageX - canvas.offsetLeft
+        let y1 = event.pageY - canvas.offsetTop;
+        this.drawLinePointer(x1, y1, false);
+            oldx = x1;
+            oldy = y1;
+        isMouseDown = true;
+        }
+  }
+  drawmove = (e)=> {
+  if (isMouseDown) {
+      let x1 = e.pageX - canvas.offsetLeft;
+            let y1 = e.pageY - canvas.offsetTop;
+      if(x1 == oldx && y1 == oldy) return;
+            this.drawLinePointer(x1, y1, true);
+      oldx = x1; oldy=y1;
+        }
+
+  }
     canvasTouchEnd = (e) => {
         this.drawLinePointer(0, 0, false);
         isMouseDown = false;
@@ -362,9 +383,9 @@ class PatternLock extends Component {
                             onTouchStart={this.canvasTouchStart}
                             onTouchMove={this.canvasTouchMove}
                             onTouchEnd={this.canvasTouchEnd}
-                          onMouseDown={this.canvasTouchStart}
-                          onMouseMove={this.canvasTouchMove}
-                          onMouseEnd={this.canvasTouchEnd}
+                          onMouseDown={this.drawstart}
+                          onMouseMove={this.drawmove}
+                          onMouseUp={this.canvasTouchEnd}
                         ></canvas>
                     </div>
                 </div>
